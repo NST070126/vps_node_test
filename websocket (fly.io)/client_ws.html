@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>test client ws</title>
+</head>
+<body>
+
+    <div id="logs"></div>
+    <div id="viewport"></div>
+
+    <script>
+        const logs     = document.getElementById('logs');
+        const viewport = document.getElementById('viewport');
+
+        let ws = null;
+        let retry = 0;
+        let isRetrying;
+        const delay = 3000;
+
+        const retry_connection = ()=>{
+            if(!isRetrying){
+
+                isRetrying = true;
+                retry++;
+
+                logs.innerHTML += 'CONNECTION TO THE SEVER : FAILED'+'<br>'
+                               +  `(retry in ${delay} ms)`+'<br>';
+                viewport.innerHTML = '';
+
+                if(ws) ws.close();
+
+                setTimeout( connect, delay );
+            }
+        };
+
+        const connect = ()=>{
+            isRetrying = false;
+
+            logs.innerHTML = `TRY CONNECTION TO THE SEVER (${retry})`+'<br>';
+
+            ws = new WebSocket(`ws://localhost:${3000}`);
+    
+            ws.onmessage = (event)=>{
+                viewport.innerHTML = event.data;
+            };
+    
+            ws.onopen = ()=>{
+                logs.innerHTML += 'CONNECTED TO THE SEVER : SUCCESS'+'<br>';
+                retry = 0;
+            };
+    
+            ws.onerror = retry_connection;
+    
+            ws.onclose = retry_connection;
+    
+        };
+
+        connect();
+    </script>
+
+</body>
+</html>
